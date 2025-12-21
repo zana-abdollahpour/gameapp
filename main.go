@@ -5,9 +5,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"gameapp/repository/mysql"
+	"gameapp/service/authservice"
 	"gameapp/service/userservice"
+)
+
+const (
+	JwtSignKey                 = "BZ0niKtToA4TwoNjP1na"
+	AccessTokenSubject         = "at"
+	RefreshTokenSubject        = "rt"
+	AccessTokenExpiryDuration  = time.Hour * 24
+	RefreshTokenExpiryDuration = time.Hour * 24 * 7
 )
 
 func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
@@ -32,8 +42,10 @@ func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpiryDuration, RefreshTokenExpiryDuration)
+
 	mysqlRepo := mysql.New()
-	userSvc := userservice.New(mysqlRepo)
+	userSvc := userservice.New(authSvc, mysqlRepo)
 
 	_, err = userSvc.Register(uReq)
 	if err != nil {
@@ -67,22 +79,69 @@ func userLoginHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	mysqlRepo := mysql.New()
-	userSvc := userservice.New(mysqlRepo)
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpiryDuration, RefreshTokenExpiryDuration)
 
-	_, err = userSvc.Login(loginRequest)
-	if err != nil {
-		fmt.Fprintf(writer, `{"error":"%s"}`, err.Error())
+	mysqlRepo := mysql.New()
+	userSvc := userservice.New(authSvc, mysqlRepo)
+
+	resp, loginErr := userSvc.Login(loginRequest)
+	if loginErr != nil {
+		fmt.Fprintf(writer, `{"error":"%s"}`, loginErr.Error())
 
 		return
 	}
 
-	writer.Write([]byte(`"message":"user credentials are ok!"`))
+	data, marshalErr := json.Marshal(resp)
+	if marshalErr != nil {
+		fmt.Fprintf(writer, `{"error":"%s"}`, marshalErr.Error())
+
+		return
+	}
+
+	writer.Write(data)
+}
+
+func userProfileHandler(writer http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		fmt.Fprintf(writer, `{"error":"invalid method"}`)
+
+		return
+	}
+
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpiryDuration, RefreshTokenExpiryDuration)
+
+	auth := req.Header.Get("Authorization")
+	tokenClaims, err := authSvc.ParseToken(auth)
+	if err != nil {
+		fmt.Fprintf(writer, `{"error":"token is not valid"}`)
+
+		return
+	}
+
+	mysqlRepo := mysql.New()
+	userSvc := userservice.New(authSvc, mysqlRepo)
+
+	resp, profileErr := userSvc.Profile(userservice.ProfileRequest{UserID: tokenClaims.UserID})
+	if profileErr != nil {
+		fmt.Fprintf(writer, `{"error":"%s"}`, profileErr.Error())
+
+		return
+	}
+
+	data, marshalErr := json.Marshal(resp)
+	if marshalErr != nil {
+		fmt.Fprintf(writer, `{"error":"%s"}`, marshalErr.Error())
+
+		return
+	}
+
+	writer.Write(data)
 }
 
 func main() {
 	http.HandleFunc("/users/register", userRegisterHandler)
 	http.HandleFunc("/users/login", userLoginHandler)
+	http.HandleFunc("/users/profile", userProfileHandler)
 
 	fmt.Println("server is listening on port 8080...")
 
