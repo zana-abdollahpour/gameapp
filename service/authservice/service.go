@@ -9,27 +9,23 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type Config struct {
+	SignKey               string
+	AccessSubject         string
+	RefreshSubject        string
+	AccessExpirationTime  time.Duration
+	RefreshExpirationTime time.Duration
+}
+
 type Service struct {
-	signKey               string
-	accessSubject         string
-	refreshSubject        string
-	accessExpirationTime  time.Duration
-	refreshExpirationTime time.Duration
+	config Config
 }
 
 func New(
-	signKey,
-	accessSubject,
-	refreshSubject string,
-	accessExpirationTime,
-	refreshExpirationTime time.Duration,
+	cfg Config,
 ) Service {
 	return Service{
-		signKey:               signKey,
-		accessSubject:         accessSubject,
-		refreshSubject:        refreshSubject,
-		accessExpirationTime:  accessExpirationTime,
-		refreshExpirationTime: refreshExpirationTime,
+		config: cfg,
 	}
 }
 
@@ -43,7 +39,7 @@ func (s Service) createToken(userID uint, subject string, expireDuration time.Du
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedString, err := token.SignedString([]byte(s.signKey))
+	signedString, err := token.SignedString([]byte(s.config.SignKey))
 	if err != nil {
 		return "", fmt.Errorf("unexpected error: %w", err)
 	}
@@ -52,17 +48,17 @@ func (s Service) createToken(userID uint, subject string, expireDuration time.Du
 }
 
 func (s Service) CreateAccessToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.accessSubject, s.accessExpirationTime)
+	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessExpirationTime)
 }
 
 func (s Service) CreateRefreshToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.refreshSubject, s.refreshExpirationTime)
+	return s.createToken(user.ID, s.config.RefreshSubject, s.config.RefreshExpirationTime)
 
 }
 
 func (s Service) ParseToken(bearerToken string) (*Claims, error) {
 	keyFunc := func(token *jwt.Token) (any, error) {
-		return []byte(s.signKey), nil
+		return []byte(s.config.SignKey), nil
 	}
 
 	tokenStr := strings.Replace(bearerToken, "Bearer ", "", 1)
