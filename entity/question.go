@@ -17,8 +17,12 @@ type PossibleAnswer struct {
 
 type PossibleAnswerChoice uint8
 
-func (answer PossibleAnswerChoice) IsValid() bool {
-	return PossibleAnswerA >= 1 && answer <= PossibleAnswerD
+func (p PossibleAnswerChoice) IsValid() bool {
+	if p >= PossibleAnswerA && p <= PossibleAnswerD {
+		return true
+	}
+
+	return false
 }
 
 const (
@@ -37,5 +41,9 @@ const (
 )
 
 func (q QuestionDifficulty) IsValid() bool {
-	return q >= QuestionDifficultyEasy && q <= QuestionDifficultyHard
+	if q >= QuestionDifficultyEasy && q <= QuestionDifficultyHard {
+		return true
+	}
+
+	return false
 }

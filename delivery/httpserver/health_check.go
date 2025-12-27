@@ -1,9 +1,8 @@
 package httpserver
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 func (s Server) healthCheck(c echo.Context) error {
