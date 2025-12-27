@@ -2,11 +2,9 @@ package httpserver
 
 import (
 	"fmt"
-
 	"gameapp/config"
 	"gameapp/service/authservice"
 	"gameapp/service/userservice"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -17,11 +15,7 @@ type Server struct {
 	userSvc userservice.Service
 }
 
-func New(
-	config config.Config,
-	authSvc authservice.Service,
-	userSvc userservice.Service,
-) Server {
+func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service) Server {
 	return Server{
 		config:  config,
 		authSvc: authSvc,
@@ -32,18 +26,19 @@ func New(
 func (s Server) Serve() {
 	e := echo.New()
 
-	e.Use(middleware.RequestLogger())
+	// Middleware
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// Routes
 	e.GET("/health-check", s.healthCheck)
 
-	// User routes
 	userGroup := e.Group("/users")
-	userGroup.POST("/register", s.userRegisterHandler)
-	userGroup.POST("/login", s.userLoginHandler)
-	// e.GET("/users/profile", s.userProfileHandler)
 
-	fmt.Println("server is listening on port 8080...")
+	userGroup.GET("/profile", s.userProfile)
+	userGroup.POST("/login", s.userLogin)
+	userGroup.POST("/register", s.userRegister)
 
+	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", s.config.HTTPServer.Port)))
 }

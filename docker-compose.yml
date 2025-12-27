@@ -1,4 +1,4 @@
-version: "3.7"
+version: '3.7'
 
 services:
   gameapp-database:
@@ -9,17 +9,13 @@ services:
     volumes:
       - dbdata:/var/lib/mysql
     restart: always
-    command:
-      [
-        "mysqld",
-        "--character-set-server=utf8mb4",
-        "--collation-server=utf8mb4_unicode_ci",
-      ]
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
     environment:
       MYSQL_ROOT_PASSWORD: gameappRoo7t0lk2o20
       MYSQL_DATABASE: gameapp_db
       MYSQL_USER: gameapp
       MYSQL_PASSWORD: gameappt0lk2o20
+
 
 volumes:
   dbdata:
