@@ -12,10 +12,11 @@ func Error(err error) (message string, code int) {
 		re := err.(richerror.RichError)
 		msg := re.Message()
 
-		// we should not expose unexpected error messages
 		code := mapKindToHTTPStatusCode(re.Kind())
+
+		// we should not expose unexpected error messages
 		if code >= 500 {
-			msg = errmsg.SomethingWentWrong
+			msg = errmsg.ErrorMsgSomethingWentWrong
 		}
 
 		return msg, code

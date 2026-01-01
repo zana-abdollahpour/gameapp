@@ -49,10 +49,6 @@ func (r RichError) WithMeta(meta map[string]interface{}) RichError {
 }
 
 func (r RichError) Error() string {
-	if r.message == "" && r.wrappedError != nil {
-		return r.wrappedError.Error()
-	}
-
 	return r.message
 }
 
@@ -75,13 +71,9 @@ func (r RichError) Message() string {
 	}
 
 	re, ok := r.wrappedError.(RichError)
-	if ok {
-		return re.Message()
-	}
-
-	if r.wrappedError != nil {
+	if !ok {
 		return r.wrappedError.Error()
 	}
 
-	return ""
+	return re.Message()
 }
