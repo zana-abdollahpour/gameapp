@@ -1,56 +1,9 @@
-# Game Application
+# Game App
 
-## Migrations
-
+# Migrations
 ```bash
-  go install github.com/rubenv/sql-migrate/...@latest
-  sql-migrate up -env="production" -config=repository/mysql/dbconfig.yml
-  sql-migrate down -env="production" -config=repository/mysql/dbconfig.yml -limit=1
-  sql-migrate status -env="production" -config=repository/mysql/dbconfig.yml
+go install github.com/rubenv/sql-migrate/...@latest
+sql-migrate up -env="production" -config=repository/mysql/dbconfig.yml
+sql-migrate down -env="production" -config=repository/mysql/dbconfig.yml -limit=1
+sql-migrate status -env="production" -config=repository/mysql/dbconfig.yml
 ```
-
-## User use-cases
-
-### Register
-
-user can register to application by phone number
-
-### Login
-
-user can log in to the application by phone number and password
-
-## Game use-cases
-
-### Each game have a given number of questions
-
-### The difficulty level of questions are "easy, medium, hard"
-
-### Game winner is determined by number of correct answers that each user answered
-
-### Each game is belonged to specific category: sport, history, etc
-
-## entities
-
-## User
-
-- ID
-- Phone number
-- Avatar
-- Name
-
-## Game
-
-- ID
-- Category
-- Question List
-- Players
-- Winner
-
-## Question
-
-- ID
-- Question
-- Answer List
-- Correct Answer
-- Difficulty
-- Category
